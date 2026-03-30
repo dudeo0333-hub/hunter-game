@@ -3,56 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>헌터 게이트</title>
+<title>헌터 게이트 RPG</title>
 <style>
-body{font-family:sans-serif;text-align:center;background:#111;color:#fff}
-button{padding:10px;margin:5px}
+body{margin:0;background:#0b1220;color:#fff;font-family:sans-serif;text-align:center}
+.wrap{max-width:700px;margin:0 auto;padding:20px}
+h1{margin:20px 0}
+.box{background:#111827;border:1px solid #374151;border-radius:12px;padding:15px;margin:12px 0}
+button{padding:10px 14px;margin:5px;border:none;border-radius:10px;background:#2563eb;color:#fff;font-size:16px}
+button.gold{background:#d97706}
+button.red{background:#dc2626}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:#1f2937;border:1px solid #374151;border-radius:10px;padding:10px;text-align:left}
+.r{color:#cbd5e1}
+.sr{color:#60a5fa}
+.ssr{color:#c084fc}
+.ur{color:#f59e0b}
+#inventory{max-height:420px;overflow:auto;text-align:left}
+.small{font-size:13px;color:#cbd5e1}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <h1 id="title">헌터 게이트 RPG</h1>
 
-<h2 id="title">헌터 게이트 RPG</h2>
+  <div class="box grid">
+    <div>크리스탈<br><strong id="crystal">1000</strong></div>
+    <div>골드<br><strong id="gold">0</strong></div>
+  </div>
 
-<p>크리스탈: <span id="c">1000</span></p>
-<p>골드: <span id="g">0</span></p>
+  <div class="box">
+    <button class="gold" onclick="summon()">가챠 1회 (100)</button>
+    <button onclick="battle()">전투</button>
+    <button class="red" onclick="resetGame()">초기화</button>
+  </div>
 
-<button onclick="summon()">캐릭터 뽑기(100)</button>
-<button onclick="battle()">전투</button>
+  <div class="box">
+    <h3>최근 결과</h3>
+    <div id="log">게임 시작</div>
+  </div>
+
+  <div class="box">
+    <h3>보유 캐릭터</h3>
+    <div class="small">중복 획득 시 보유 수 증가</div>
+    <div id="inventory"></div>
+  </div>
+</div>
 
 <script>
-let c=1000,g=0,tap=0,timer;
+const SAVE_KEY = "hunter_gate_rpg_100_gacha_v1";
 
-function summon(){
- if(c>=100){c-=100;update();alert("캐릭터 획득!")}
- else alert("크리스탈 부족")
+let crystal = 1000;
+let gold = 0;
+let owned = {};
+let cheatTap = 0;
+let cheatTimer = null;
+
+const prefixes = [
+  "흑월","백은","빙하","성광","폭염","심연","강철","폭풍","야성","명계",
+  "환영","천뢰","황혼","결계","흑련","성배","청안","역병","백룡","무극"
+];
+
+const jobs = [
+  "검사","창기사","궁수","술사","치유사"
+];
+
+const characters = [];
+let id = 1;
+for (let i = 0; i < prefixes.length; i++) {
+  for (let j = 0; j < jobs.length; j++) {
+    characters.push({
+      id: id++,
+      name: prefixes[i] + " " + jobs[j]
+    });
+  }
 }
 
-function battle(){
- let r=Math.random();
- if(r<0.5){g+=100;alert("승리 +100골드")}
- else alert("패배")
- update();
+function getRank() {
+  const r = Math.random() * 100;
+  if (r < 60) return "R";
+  if (r < 88) return "SR";
+  if (r < 98) return "SSR";
+  return "UR";
 }
 
-function update(){
- document.getElementById("c").innerText=c;
- document.getElementById("g").innerText=g;
+function rankClass(rank) {
+  if (rank === "R") return "r";
+  if (rank === "SR") return "sr";
+  if (rank === "SSR") return "ssr";
+  return "ur";
 }
 
-// 숨겨진 치트 (타이틀 5번 클릭)
-document.getElementById("title").onclick=()=>{
- tap++;
- clearTimeout(timer);
- timer=setTimeout(()=>tap=0,1200);
- if(tap>=5){
-   c+=9999;
-   g+=9999;
-   update();
-   alert("치트 활성화🔥");
-   tap=0;
- }
+function saveGame() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify({
+    crystal, gold, owned
+  }));
 }
+
+function loadGame() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    crystal = data.crystal ?? 1000;
+    gold = data.gold ?? 0;
+    owned = data.owned ?? {};
+  } catch(e) {}
+}
+
+function update() {
+  document.getElementById("crystal").innerText = crystal;
+  document.getElementById("gold").innerText = gold;
+  renderInventory();
+  saveGame();
+}
+
+function log(text) {
+  document.getElementById("log").innerHTML = text;
+}
+
+function summon() {
+  if (crystal < 100) {
+    log("크리스탈 부족");
+    return;
+  }
+
+  crystal -= 100;
+
+  const char = characters[Math.floor(Math.random() * characters.length)];
+  const rank = getRank();
+  const key = rank + "_" + char.id;
+
+  if (!owned[key]) {
+    owned[key] = {
+      id: char.id,
+      name: char.name,
+      rank: rank,
+      count: 1
+    };
+  } else {
+    owned[key].count += 1;
+  }
+
+  log(`<span class="${rankClass(rank)}"><strong>${rank}</strong></span> 획득! → ${char.name}${owned[key].count > 1 ? " (중복 +" + owned[key].count + ")" : ""}`);
+  update();
+}
+
+function battle() {
+  const reward = Math.floor(Math.random() * 120) + 30;
+  gold += reward;
+  log(`전투 승리! 골드 +${reward}`);
+  update();
+}
+
+function renderInventory() {
+  const inventory = document.getElementById("inventory");
+  const list = Object.values(owned).sort((a, b) => {
+    const order = {UR:4, SSR:3, SR:2, R:1};
+    if (order[b.rank] !== order[a.rank]) return order[b.rank] - order[a.rank];
+    return a.name.localeCompare(b.name, "ko");
+  });
+
+  if (list.length === 0) {
+    inventory.innerHTML = '<div class="small">아직 보유 캐릭터가 없습니다.</div>';
+    return;
+  }
+
+  inventory.innerHTML = list.map(c => `
+    <div class="card">
+      <div class="${rankClass(c.rank)}"><strong>${c.rank}</strong></div>
+      <div>${c.name}</div>
+      <div class="small">보유 수: ${c.count}</div>
+    </div>
+  `).join("");
+}
+
+function resetGame() {
+  if (!confirm("정말 초기화할까?")) return;
+  localStorage.removeItem(SAVE_KEY);
+  crystal = 1000;
+  gold = 0;
+  owned = {};
+  log("게임 초기화");
+  update();
+}
+
+// 숨겨진 치트: 제목 5번 터치
+document.getElementById("title").addEventListener("click", () => {
+  cheatTap++;
+  clearTimeout(cheatTimer);
+  cheatTimer = setTimeout(() => cheatTap = 0, 1200);
+
+  if (cheatTap >= 5) {
+    cheatTap = 0;
+    crystal += 9999;
+    gold += 9999;
+    log("치트 활성화🔥 크리스탈 +9999 / 골드 +9999");
+    update();
+  }
+});
+
+loadGame();
+update();
 </script>
-
 </body>
 </html>
