@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>헌터 게이트 모바일 RPG</title>
+<style>
+:root{
+  --bg:#050b16;
+  --bg2:#0d1526;
+  --panel:rgba(12,18,34,.96);
+  --panel-soft:rgba(17,24,39,.94);
+  --line:#2f3f57;
+  --text:#f8fafc;
+  --muted:#cbd5e1;
+  --blue:#38bdf8;
+  --violet:#8b5cf6;
+  --gold:#f59e0b;
+  --green:#22c55e;
+  --red:#ef4444;
+  --pink:#f472b6;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:radial-gradient(circle at top,#0f172a,#050b16 70%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+body{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+button,input,select{font:inherit}
+.hidden{display:none!important}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 110px}
+.hero{
+  background:
+   radial-gradient(circle at 50% 10%, rgba(56,189,248,.14), transparent 32%),
+   linear-gradient(180deg,#0b1220,#111827 55%, #0b1220);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 18px 40px rgba(0,0,0,.26);
+}
+h1,h2,h3,h4{margin:0 0 8px 0;letter-spacing:-.03em}
+.sub{color:var(--muted);font-size:13px;line-height:1.55}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:12px;
+}
+.stat{
+  background:rgba(10,16,29,.75);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:10px 12px;
+}
+.big{font-size:20px;font-weight:900}
+.small{font-size:12px;color:var(--muted)}
+.toolbar{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:12px
+}
+button{
+  border:none;border-radius:14px;padding:12px 14px;font-weight:800;color:white;cursor:pointer
+}
+button.primary{background:linear-gradient(135deg,#2563eb,#38bdf8)}
+button.violet{background:linear-gradient(135deg,#6d28d9,#8b5cf6)}
+button.gold{background:linear-gradient(135deg,#d97706,#f59e0b)}
+button.green{background:linear-gradient(135deg,#15803d,#22c55e)}
+button.red{background:linear-gradient(135deg,#b91c1c,#ef4444)}
+button.ghost{background:#111827;border:1px solid var(--line)}
+button.smallBtn{padding:8px 10px;border-radius:12px;font-size:12px}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:14px;
+  box-shadow:0 16px 32px rgba(0,0,0,.22);
+}
+.section{margin-top:14px}
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(5,11,22,.96);
+  backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(5,1fr);gap:8px;
+  z-index:100;
+}
+.tabbar button{
+  background:#111827;border:1px solid var(--line);color:#e5e7eb;
+  padding:10px 6px;border-radius:16px;font-size:12px
+}
+.tabbar button.active{
+  background:linear-gradient(135deg,#2563eb,#38bdf8);
+  border:none;color:white
+}
+.page{display:none}
+.page.active{display:block}
+.row{
+  background:#111827;border:1px solid var(--line);border-radius:16px;padding:12px;
+}
+.list{display:grid;gap:10px}
+.badge{
+  display:inline-block;padding:4px 8px;border-radius:999px;
+  font-size:11px;font-weight:900;margin-right:6px;margin-bottom:4px
+}
+.star1{background:#334155;color:#e2e8f0}.star2{background:#1e40af;color:#dbeafe}.star3{background:#065f46;color:#d1fae5}.star4{background:#6d28d9;color:#ede9fe}.star5{background:#b45309;color:#fef3c7}.star6{background:#be123c;color:#ffe4e6}.star7{background:#7c2d12;color:#ffedd5;border:1px solid #f59e0b}
+.common{background:rgba(148,163,184,.18);color:#e2e8f0}.rare{background:rgba(96,165,250,.2);color:#bfdbfe}.unique{background:rgba(192,132,252,.18);color:#e9d5ff}.relic{background:rgba(245,158,11,.18);color:#fde68a}.exclusive{background:rgba(244,63,94,.18);color:#fecdd3}
+.highlight{border-color:#60a5fa!important;box-shadow:0 0 0 1px rgba(96,165,250,.35) inset}
+.name{font-size:17px;font-weight:900}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.note{
+  background:#0b1220;border:1px dashed var(--line);border-radius:16px;padding:12px;
+  color:var(--muted);font-size:12px;line-height:1.55
+}
+.scene{
+  position:relative;
+  background:radial-gradient(circle at 50% 10%, rgba(56,189,248,.18), transparent 30%),linear-gradient(180deg,#0b1220,#111827 56%,#0b1220);
+  border:1px solid var(--line);border-radius:20px;min-height:360px;overflow:hidden;
+}
+.gateway{
+  position:absolute;left:50%;top:62px;transform:translateX(-50%);
+  width:160px;height:210px;border-radius:90px 90px 40px 40px/120px 120px 30px 30px;
+  background:radial-gradient(circle at 50% 35%, rgba(96,165,250,.85), rgba(37,99,235,.18) 55%, rgba(15,23,42,0) 75%);
+  border:2px solid rgba(125,211,252,.3);
+  box-shadow:0 0 70px rgba(96,165,250,.3), inset 0 0 40px rgba(255,255,255,.08);
+}
+.enemy{
+  position:absolute;right:34px;bottom:78px;width:96px;height:150px
+}
+.enemy .head{width:38px;height:38px;border-radius:50%;background:#475569;margin:0 auto}
+.enemy .body{width:68px;height:98px;border-radius:18px 18px 10px 10px;background:#334155;margin:8px auto 0}
+.teamArea{position:absolute;left:22px;right:126px;bottom:38px;display:flex;gap:14px;align-items:flex-end}
+.hunter{
+  width:72px;height:128px;position:relative;filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));
+}
+.hunter .head{width:30px;height:30px;border-radius:50%;background:#e5e7eb;margin:0 auto}
+.hunter .body{width:50px;height:74px;border-radius:16px 16px 10px 10px;background:linear-gradient(180deg,#1e293b,#334155);margin:6px auto 0;border:1px solid rgba(255,255,255,.06)}
+.hunter .weapon{position:absolute;width:42px;height:6px;background:#93c5fd;right:-8px;top:50px;border-radius:999px;transform:rotate(-18deg)}
+.shadowFloor{position:absolute;left:0;right:0;bottom:0;height:100px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.35))}
+.skillFx{position:absolute;inset:0;pointer-events:none}
+.fxText{position:absolute;left:50%;top:34px;transform:translateX(-50%);font-weight:900;font-size:24px;text-shadow:0 0 18px rgba(255,255,255,.35);opacity:0;transition:all .35s}
+.fxText.show{top:16px;opacity:1}
+.fxSlash,.fxCircle,.fxBurst,.fxShield,.fxRay,.fxHeal{position:absolute;opacity:0;transition:all .35s}
+.fxSlash{left:55%;top:48%;width:200px;height:14px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(167,243,208,.9),rgba(255,255,255,0));transform:rotate(-18deg) scaleX(.2)}
+.fxSlash.show{opacity:1;transform:rotate(-18deg) scaleX(1)}
+.fxCircle{left:52%;top:34%;width:170px;height:170px;border:3px solid rgba(96,165,250,.85);border-radius:50%;transform:translate(-50%,-50%) scale(.2)}
+.fxCircle.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.fxBurst{right:40px;top:90px;width:120px;height:120px;background:radial-gradient(circle, rgba(244,114,182,.8), rgba(244,114,182,0));transform:scale(.2)}
+.fxBurst.show{opacity:1;transform:scale(1.2)}
+.fxShield{left:16%;top:44%;width:220px;height:120px;border:3px solid rgba(125,211,252,.85);border-radius:140px/80px;transform:scale(.4)}
+.fxShield.show{opacity:1;transform:scale(1)}
+.fxRay{left:10%;top:42%;width:320px;height:8px;background:linear-gradient(90deg,rgba(96,165,250,0),rgba(96,165,250,.95),rgba(255,255,255,0));transform:rotate(-6deg) scaleX(.2)}
+.fxRay.show{opacity:1;transform:rotate(-6deg) scaleX(1)}
+.fxHeal{left:22%;top:36%;font-size:58px;color:#86efac;transform:scale(.4)}
+.fxHeal.show{opacity:1;transform:scale(1)}
+.bar{width:100%;height:14px;background:#0b1220;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.fillEnemy{height:100%;background:linear-gradient(90deg,#2563eb,#38bdf8)}
+.log{
+  max-height:220px;overflow:auto;background:#0b1220;border:1px solid var(--line);border-radius:14px;padding:10px;
+  font-size:12px;color:var(--muted);line-height:1.5
+}
+.popup{
+  position:fixed;inset:0;background:rgba(3,7,18,.72);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:16px;z-index:200
+}
+.popup.active{display:flex}
+.sheet{
+  width:min(100%,520px);max-height:84vh;overflow:auto;background:var(--panel-soft);
+  border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)
+}
+.center{text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>🗡️ 헌터 게이트 모바일 RPG</h1>
+    <div class="sub">모바일 플레이에 맞춰 정리한 단일 HTML 완성본입니다. 캐릭터/능력/장비 가챠, 3인 자동전투, 스킬 연출, 장비 착용, 강화 +10, 승급, 오프라인 보상, 로컬 저장이 포함됩니다.</div>
+    <div class="stats">
+      <div class="stat"><div class="small">크리스탈</div><div id="crystalText" class="big">0</div></div>
+      <div class="stat"><div class="small">골드</div><div id="goldText" class="big">0</div></div>
+      <div class="stat"><div class="small">캐릭터</div><div id="ownedCount" class="big">0 / 40</div></div>
+      <div class="stat"><div class="small">능력</div><div id="abilityCount" class="big">0</div></div>
+      <div class="stat"><div class="small">장비</div><div id="gearCount" class="big">0</div></div>
+      <div class="stat"><div class="small">누적 처치</div><div id="killCountText" class="big">0</div></div>
+    </div>
+    <div class="toolbar">
+      <button class="green" id="claimOfflineBtn">오프라인 보상 받기</button>
+      <button class="primary" id="dailyRewardBtn">일일 보급</button>
+      <button class="ghost" id="saveSlotBtn">세이브 슬롯</button>
+      <button class="ghost" id="giftBtn">크리스탈 +3000</button>
+      <button class="ghost" id="resetBtn">초기화</button>
+    </div>
+  </div>
+
+  <section id="pageBattle" class="page active section">
+    <div class="card">
+      <h2>🌌 게이트 공략</h2>
+      <div class="grid3" id="teamSlots"></div>
+      <div class="toolbar">
+        <button class="green" id="startBattleBtn">자동전투 시작</button>
+        <button class="red" id="stopBattleBtn">정지</button>
+        <button class="ghost" id="clearTeamBtn">팀 비우기</button>
+      </div>
+      <div class="scene section">
+        <div class="gateway"></div>
+        <div class="teamArea" id="teamVisual"></div>
+        <div class="enemy"><div class="head"></div><div class="body"></div></div>
+        <div class="skillFx">
+          <div id="fxText" class="fxText"></div>
+          <div id="fxSlash" class="fxSlash"></div>
+          <div id="fxCircle" class="fxCircle"></div>
+          <div id="fxBurst" class="fxBurst"></div>
+          <div id="fxShield" class="fxShield"></div>
+          <div id="fxRay" class="fxRay"></div>
+          <div id="fxHeal" class="fxHeal">✦</div>
+        </div>
+        <div class="shadowFloor"></div>
+      </div>
+      <div class="grid2 section">
+        <div class="row">
+          <div><strong>전투 상태</strong></div>
+          <div class="small">지역 <span id="zoneText">-</span> · 스테이지 <span id="stageText">1</span> · 웨이브 <span id="waveText">1</span></div>
+          <div class="small" style="margin-top:8px;">적: <span id="monsterNameText">-</span></div>
+          <div class="small" style="margin-top:8px;">적 HP <span id="monsterHpText">0 / 0</span></div>
+          <div class="bar"><div id="monsterHpFill" class="fillEnemy" style="width:0%"></div></div>
+        </div>
+        <div class="row">
+          <div><strong>전투 수치</strong></div>
+          <div class="small">팀 전투력 <span id="teamPowerText">0</span></div>
+          <div class="small">최근 DPS <span id="dpsText">0</span></div>
+          <div class="small">최근 스킬 <span id="lastSkillText">없음</span></div>
+          <div class="small">방치 크리스탈 <span id="battleCrystalText">0</span></div>
+        </div>
+      </div>
+      <div class="section row">
+        <div><strong>전투 로그</strong></div>
+        <div id="battleLog" class="log" style="margin-top:8px;">팀을 편성하고 자동전투를 시작하세요.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pageSummon" class="page section">
+    <div class="card">
+      <h2>🎲 가챠 센터</h2>
+      <div class="grid2">
+        <div class="row">
+          <div><strong>캐릭터 가챠</strong></div>
+          <div class="small">1⭐ ~ 7⭐</div>
+          <div class="toolbar">
+            <button class="gold" id="charSingleBtn">1회 (100)</button>
+            <button class="gold" id="charTenBtn">10회 (900)</button>
+          </div>
+        </div>
+        <div class="row">
+          <div><strong>능력 가챠</strong></div>
+          <div class="small">1등급 ~ 7등급</div>
+          <div class="toolbar">
+            <button class="primary" id="abilitySingleBtn">1회 (60)</button>
+            <button class="primary" id="abilityTenBtn">10회 (540)</button>
+          </div>
+        </div>
+        <div class="row">
+          <div><strong>장비 가챠</strong></div>
+          <div class="small">일반 · 레어 · 유니크 · 유물 · 전용</div>
+          <div class="toolbar">
+            <button class="violet" id="gearSingleBtn">1회 (80)</button>
+            <button class="violet" id="gearTenBtn">10회 (720)</button>
+          </div>
+        </div>
+        <div class="row">
+          <div><strong>가챠 누적</strong></div>
+          <div class="small">캐릭터 <span id="charPullCount">0</span> · 능력 <span id="abilityPullCount">0</span> · 장비 <span id="gearPullCount">0</span></div>
+        </div>
+      </div>
+      <div class="section row">
+        <div><strong>결과</strong></div>
+        <div id="resultBox" style="margin-top:8px" class="list"><div class="small">아직 뽑기를 진행하지 않았습니다.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pageRoster" class="page section">
+    <div class="card">
+      <h2>🧙 헌터 명단</h2>
+      <div class="small">캐릭터를 누르면 상세 관리가 열립니다.</div>
+      <div id="characterList" class="list section"></div>
+    </div>
+  </section>
+
+  <section id="pageInventory" class="page section">
+    <div class="card">
+      <h2>🎒 인벤토리</h2>
+      <div class="grid2">
+        <div class="row">
+          <div><strong>미장착 능력</strong></div>
+          <div id="abilityInventoryList" class="list section"></div>
+        </div>
+        <div class="row">
+          <div><strong>미장착 장비</strong></div>
+          <div id="gearInventoryList" class="list section"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pageExtra" class="page section">
+    <div class="card">
+      <h2>🏆 업적 · 스킨 · 가이드</h2>
+      <div class="grid2">
+        <div class="row">
+          <div><strong>업적</strong></div>
+          <div id="achievementList" class="list section"></div>
+        </div>
+        <div class="row">
+          <div><strong>스킨 선택</strong></div>
+          <div class="small">현재 적용 스킨: <span id="activeSkinText">기본</span></div>
+          <div class="toolbar">
+            <button class="ghost smallBtn" onclick="setSkin('default')">기본</button>
+            <button class="primary smallBtn" onclick="setSkin('azure')">아쥬르</button>
+            <button class="violet smallBtn" onclick="setSkin('violet')">바이올렛</button>
+            <button class="gold smallBtn" onclick="setSkin('gold')">골드</button>
+          </div>
+          <div class="note section">
+            • 팀 편성은 최대 3인입니다.<br>
+            • 자동전투 중 4틱마다 팀원 중 1명이 스킬을 사용합니다.<br>
+            • 강화는 +10까지, 골드를 소모합니다.<br>
+            • 승급은 동일 등급의 동일 캐릭터 1개 + 동일 등급 캐릭터 1개가 필요합니다.<br>
+            • 장비는 캐릭터당 1개 착용 가능하며, 전용 장비는 지정 캐릭터만 착용 가능합니다.<br>
+            • 장비 강화는 +10까지 가능합니다.<br>
+            • 보스 웨이브는 주기적으로 피해 감소 패턴을 사용합니다.<br>
+            • 오프라인 보상은 마지막 저장 시점을 기준으로 최대 8시간까지 계산합니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar">
+  <button data-tab="Battle" class="active">전투</button>
+  <button data-tab="Summon">가챠</button>
+  <button data-tab="Roster">헌터</button>
+  <button data-tab="Inventory">인벤토리</button>
+  <button data-tab="Extra">추가</button>
+</nav>
+
+<div id="charPopup" class="popup">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+      <h2>헌터 관리</h2>
+      <button class="ghost smallBtn" onclick="closeCharPopup()">닫기</button>
+    </div>
+    <div id="selectedInfo" class="sub section">선택된 캐릭터 없음</div>
+
+    <div class="section row">
+      <div><strong>장착 능력</strong></div>
+      <div id="equippedBox" class="list section"></div>
+      <div><strong>능력 장착</strong></div>
+      <div id="inventoryBox" class="list section"></div>
+    </div>
+
+    <div class="section row">
+      <div><strong>장착 장비</strong></div>
+      <div id="gearEquippedBox" class="list section"></div>
+      <div><strong>장비 착용</strong></div>
+      <div id="gearInventoryBox" class="list section"></div>
+    </div>
+  </div>
+</div>
+
+<div id="savePopup" class="popup">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+      <h2>세이브 슬롯</h2>
+      <button class="ghost smallBtn" onclick="closeSavePopup()">닫기</button>
+    </div>
+    <div class="small">현재 상태를 슬롯에 저장하거나 불러올 수 있습니다.</div>
+    <div id="saveSlotList" class="list section"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "hunter_mobile_complete_v1";
+const baseCharacters = [{"id": 1, "name": "흑월 검사", "role": "그림자 속성 근접 딜러", "skill": "월영참"}, {"id": 2, "name": "백은 창기사", "role": "관통 특화 돌진형", "skill": "성창 돌격"}, {"id": 3, "name": "빙하 술사", "role": "광역 둔화 마법형", "skill": "빙하 폭풍"}, {"id": 4, "name": "성광 치유사", "role": "회복·보호막 지원형", "skill": "성광 치유"}, {"id": 5, "name": "폭염 궁수", "role": "화상 누적 원거리형", "skill": "홍련 사격"}, {"id": 6, "name": "심연 암살자", "role": "치명타 특화 처형형", "skill": "심연 처형"}, {"id": 7, "name": "강철 수호자", "role": "도발·피해감소 탱커형", "skill": "강철 방벽"}, {"id": 8, "name": "폭풍 권사", "role": "연타 콤보 근접형", "skill": "폭뢰 연권"}, {"id": 9, "name": "야성 소환사", "role": "소환수·자연회복형", "skill": "야수 강림"}, {"id": 10, "name": "명계 낫술사", "role": "흡혈·처형 특화형", "skill": "명계 수확"}, {"id": 11, "name": "환영 도적", "role": "회피·분신 교란형", "skill": "환영 난무"}, {"id": 12, "name": "천뢰 법사", "role": "연쇄 번개 광역형", "skill": "천뢰 낙하"}, {"id": 13, "name": "황혼 검희", "role": "속도형 범위 베기형", "skill": "황혼 일섬"}, {"id": 14, "name": "결계 술사", "role": "보호막·정화 특화형", "skill": "절대 결계"}, {"id": 15, "name": "흑련 마도사", "role": "폭발형 화염 딜러", "skill": "흑련 폭발"}, {"id": 16, "name": "성배 기사", "role": "아군 강화 오라형", "skill": "성배 축복"}, {"id": 17, "name": "청안 저격수", "role": "보스전 단일 저격형", "skill": "청안 저격"}, {"id": 18, "name": "역병 집행자", "role": "중독·약화 디버퍼형", "skill": "역병 확산"}, {"id": 19, "name": "백룡 기사", "role": "균형형 리더형", "skill": "백룡 강림"}, {"id": 20, "name": "무극 패왕", "role": "후반 폭발 성장형", "skill": "무극 해방"}, {"id": 21, "name": "서리 창병", "role": "빙결 관통형 돌격 딜러", "skill": "서리 관통"}, {"id": 22, "name": "자홍 무희", "role": "연속 베기 회피 특화형", "skill": "자홍 선무"}, {"id": 23, "name": "철혈 집행관", "role": "단단한 처단 탱딜형", "skill": "철혈 심판"}, {"id": 24, "name": "성역 사도", "role": "버프·정화 지원형", "skill": "성역 파동"}, {"id": 25, "name": "흑안 사냥꾼", "role": "야수 추적 단일 딜러", "skill": "흑안 추격"}, {"id": 26, "name": "용암 파괴자", "role": "광역 화염 분쇄형", "skill": "용암 붕괴"}, {"id": 27, "name": "월광 음유시인", "role": "행동 가속 지원형", "skill": "월광 합주"}, {"id": 28, "name": "영혼 주술사", "role": "약화·속박 디버퍼형", "skill": "영혼 구속"}, {"id": 29, "name": "태풍 창무사", "role": "회전 돌진 광역형", "skill": "태풍 윤무"}, {"id": 30, "name": "은빛 치유사", "role": "지속 회복 보조형", "skill": "은빛 재생"}, {"id": 31, "name": "그림자 군주", "role": "후반 폭발 지휘형", "skill": "그림자 군림"}, {"id": 32, "name": "붉은 마검사", "role": "흡혈 근접 폭딜형", "skill": "혈염 난도"}, {"id": 33, "name": "별바람 궁수", "role": "연사·치명 특화형", "skill": "별바람 연궁"}, {"id": 34, "name": "청명 도사", "role": "낙뢰·정화 혼합형", "skill": "청명 낙뢰"}, {"id": 35, "name": "암야 수문장", "role": "도발·반격 방어형", "skill": "암야 반격"}, {"id": 36, "name": "유성 척후병", "role": "선공·관통 암습형", "skill": "유성 돌파"}, {"id": 37, "name": "성흔 기사", "role": "오라·방벽 보호형", "skill": "성흔 결전"}, {"id": 38, "name": "절망 파수꾼", "role": "보스전 약점 공략형", "skill": "절망 찌르기"}, {"id": 39, "name": "광휘 마도사", "role": "광역 섬광 폭딜형", "skill": "광휘 붕성"}, {"id": 40, "name": "천공 지배자", "role": "최상급 하이브리드형", "skill": "천공 붕천"}];
+
+const abilityPools = {
+  1: ["힘 +5","체력 +60","방어 +4","명중 +3","회피 +2"],
+  2: ["공격력 +8%","체력 +10%","치명타 +3%","방어관통 +4%","재생 +5"],
+  3: ["공속 +6%","치피 +10%","스킬위력 +8%","보스피해 +8%","그림자 적응 +6%"],
+  4: ["흡혈 +4%","광역피해 +10%","치명타 +6%","관통 +8%","게이트 파괴력 +10%"],
+  5: ["전투 시작 보호막","보스피해 +16%","공속 +12%","치피 +18%","스킬재사용 -8%"],
+  6: ["부활 1회","체력비례 추가피해","방어무시 +12%","연속타 확률 +10%","흡혈 +8%"],
+  7: ["각성 폭주","불사 3초","궁극기 즉시충전","광역 처형","헌터왕의 가호"]
+};
+const charRates = [{star:1, rate:0.30},{star:2, rate:0.24},{star:3, rate:0.18},{star:4, rate:0.13},{star:5, rate:0.09},{star:6, rate:0.045},{star:7, rate:0.015}];
+const abilityRates = [{tier:1, rate:0.28},{tier:2, rate:0.22},{tier:3, rate:0.18},{tier:4, rate:0.14},{tier:5, rate:0.10},{tier:6, rate:0.06},{tier:7, rate:0.02}];
+const gearRates = [{tier:"일반", rate:0.45},{tier:"레어", rate:0.28},{tier:"유니크", rate:0.16},{tier:"유물", rate:0.08},{tier:"전용", rate:0.03}];
+const gearTierClassMap = {"일반":"common","레어":"rare","유니크":"unique","유물":"relic","전용":"exclusive"};
+const gearPools = {
+  "일반": [{name:"훈련용 검", atk:8, bonus:"공격력 +5%"},{name:"가죽 장갑", atk:6, bonus:"공속 +4%"},{name:"하급 마력서", atk:7, bonus:"치명타 +2%"}],
+  "레어": [{name:"청월 단검", atk:14, bonus:"치명타 +5%"},{name:"빙결 지팡이", atk:15, bonus:"스킬위력 +8%"},{name:"철벽 대검", atk:16, bonus:"보스피해 +6%"}],
+  "유니크": [{name:"붉은 매의 활", atk:24, bonus:"공속 +10%"},{name:"심연 관통창", atk:26, bonus:"방어무시 +8%"},{name:"혼령서", atk:23, bonus:"게이트 파괴력 +10%"}],
+  "유물": [{name:"천공의 검", atk:38, bonus:"치피 +18%"},{name:"망각의 낫", atk:40, bonus:"흡혈 +8%"},{name:"고대 마도핵", atk:36, bonus:"보스피해 +16%"}],
+  "전용": [
+    {name:"흑월의 지배검", atk:58, bonus:"전용 각성", exclusiveBonus:"공격력 +22%, 공속 +12%", ownerId:1},
+    {name:"멸광의 성창", atk:56, bonus:"전용 각성", exclusiveBonus:"보스피해 +25%, 치명타 +10%", ownerId:2},
+    {name:"심연 붕괴서", atk:60, bonus:"전용 각성", exclusiveBonus:"스킬위력 +25%, 게이트 파괴력 +18%", ownerId:15}
+  ]
+};
+const zones = ["붕괴된 지하성","검은 숲","망각의 회랑","심연의 균열","그림자 궁전"];
+const monsters = ["그림자 늑대","망령 전사","타락한 기사","심연 구울","붕괴 골렘"];
+function ownerNameById(id){ const c = baseCharacters.find(v => v.id === id); return c ? c.name : "미지정"; }
+
+let state = null;
+let selectedCharId = null;
+let battleTimer = null;
+let tickCount = 0;
+
+function defaultState(){
+  return {
+    crystal: 3000, gold: 0, battleCrystal: 0, totalKills: 0,
+    owned: [], abilityInventory: [], gearInventory: [],
+    charPullCount: 0, abilityPullCount: 0, gearPullCount: 0,
+    team: [null,null,null],
+    activeSkin: "default",
+    achievements: {},
+    bestStage: 1,
+    bestPower: 0,
+    lastSavedAt: Date.now(),
+    lastClaimedOfflineAt: Date.now(),
+    lastDailyRewardDay: "", 
+    battle: {running:false, zone:zones[0], stage:1, wave:1, monsterName:monsters[0], monsterHp:80, monsterHpMax:80, recentDps:0, log:["팀을 편성하고 자동전투를 시작하세요."], lastSkill:"없음"}
+  };
+}
+function save(){ state.lastSavedAt = Date.now(); localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function load(){ const raw = localStorage.getItem(STORAGE_KEY); if(raw){ try{ state = JSON.parse(raw); } catch { state = defaultState(); } } else state = defaultState(); ensureMeta(); }
+function resetGame(){ if(!confirm("정말 초기화할까요?")) return; stopBattle(); localStorage.removeItem(STORAGE_KEY); state = defaultState(); selectedCharId = null; renderAll(); }
+function weightedPick(list, keyName){ const r=Math.random(); let acc=0; for(const item of list){ acc+=item.rate; if(r<=acc) return item[keyName]; } return list[list.length-1][keyName]; }
+function randomFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); }
+function getBaseCharacterTemplate(){ return randomFrom(baseCharacters); }
+function starClass(star){ return "star"+star; }
+function tierClass(tier){ if(tier<=2) return "common"; if(tier<=4) return "rare"; if(tier===5) return "unique"; if(tier===6) return "relic"; return "exclusive"; }
+function gearClass(tier){ return gearTierClassMap[tier] || "common"; }
+
+function ensureMeta(){
+  if(!state.activeSkin) state.activeSkin = "default";
+  if(!state.achievements) state.achievements = {};
+  if(!state.bestStage) state.bestStage = state.battle?.stage || 1;
+  if(!state.bestPower) state.bestPower = teamTotalPower ? teamTotalPower() : 0;
+}
+function saveSlotsKey(slot){ return `${STORAGE_KEY}_slot_${slot}`; }
+function slotMeta(stateObj){
+  return `스테이지 ${stateObj.battle?.stage||1} · 캐릭터 ${stateObj.owned?.length||0}명 · ${new Date(stateObj.lastSavedAt||Date.now()).toLocaleString('ko-KR')}`;
+}
+
+function baseAttackFromStar(star){ return 12 + star*8; }
+function applyBonusString(current, text){
+  let {attack, speed, crit, gateBonus, mult} = current;
+  if(text.includes("공격력 +5%")) mult *= 1.05;
+  if(text.includes("공격력 +22%")) mult *= 1.22;
+  if(text.includes("공속 +4%")) speed += 0.04;
+  if(text.includes("공속 +10%")) speed += 0.10;
+  if(text.includes("공속 +12%")) speed += 0.12;
+  if(text.includes("치명타 +2%")) crit += 0.02;
+  if(text.includes("치명타 +5%")) crit += 0.05;
+  if(text.includes("치명타 +10%")) crit += 0.10;
+  if(text.includes("치피 +18%")) mult *= 1.12;
+  if(text.includes("스킬위력 +8%")) mult *= 1.06;
+  if(text.includes("스킬위력 +25%")) mult *= 1.18;
+  if(text.includes("보스피해 +6%")) gateBonus += 0.06;
+  if(text.includes("보스피해 +16%")) gateBonus += 0.16;
+  if(text.includes("보스피해 +25%")) gateBonus += 0.25;
+  if(text.includes("방어무시 +8%")) mult *= 1.05;
+  if(text.includes("흡혈 +8%")) mult *= 1.06;
+  if(text.includes("게이트 파괴력 +10%")) gateBonus += 0.10;
+  if(text.includes("게이트 파괴력 +18%")) gateBonus += 0.18;
+  return {attack, speed, crit, gateBonus, mult};
+}
+function calcCharacterPower(char){
+  let current = {attack: baseAttackFromStar(char.star)+char.awaken*3, speed:1, crit:0, gateBonus:0, mult:1};
+  current.attack += (char.enhance||0)*4;
+  current.mult *= 1 + ((char.enhance||0)*0.03);
+  for(const a of char.abilities){
+    const n=a.name;
+    if(n.includes("힘 +5")) current.attack += 5;
+    if(n.includes("공격력 +8%")) current.mult *= 1.08;
+    if(n.includes("공속 +6%")) current.speed += 0.06;
+    if(n.includes("공속 +12%")) current.speed += 0.12;
+    if(n.includes("치명타 +3%")) current.crit += 0.03;
+    if(n.includes("치명타 +6%")) current.crit += 0.06;
+    if(n.includes("치피 +10%")) current.mult *= 1.06;
+    if(n.includes("치피 +18%")) current.mult *= 1.12;
+    if(n.includes("보스피해 +8%")) current.gateBonus += 0.08;
+    if(n.includes("보스피해 +16%")) current.gateBonus += 0.16;
+    if(n.includes("체력비례 추가피해")) current.mult *= 1.10;
+    if(n.includes("방어무시 +12%")) current.mult *= 1.08;
+    if(n.includes("각성 폭주")) current.mult *= 1.18;
+    if(n.includes("광역 처형")) current.mult *= 1.15;
+    if(n.includes("헌터왕의 가호")) { current.mult *= 1.22; current.speed += 0.1; }
+    if(n.includes("게이트 파괴력 +10%")) current.gateBonus += 0.1;
+    if(n.includes("그림자 적응 +6%")) current.mult *= 1.05;
+  }
+  if(char.equippedGear){
+    current.attack += (char.equippedGear.atk||0) + ((char.equippedGear.enhance||0) * 3);
+    current.mult *= 1 + ((char.equippedGear.enhance||0) * 0.025);
+    current = applyBonusString(current, char.equippedGear.bonus||"");
+    current = applyBonusString(current, char.equippedGear.exclusiveBonus||"");
+  }
+  return Math.max(1, Math.round(current.attack*current.mult*current.speed*(1+current.crit*0.5+current.gateBonus*0.2)));
+}
+
+function renderResultCards(entries){
+  const box=document.getElementById("resultBox");
+  if(!entries.length){ box.innerHTML = `<div class="small">결과가 없습니다.</div>`; return; }
+  box.innerHTML = entries.map(v=>v).join("");
+}
+
+function pullCharacters(times){
+  const cost=times===10?900:100;
+  if(state.crystal<cost){ alert("크리스탈이 부족합니다."); return; }
+  state.crystal-=cost; state.charPullCount+=times;
+  const entries=[];
+  for(let i=0;i<times;i++){
+    const star=weightedPick(charRates,"star");
+    const base=getBaseCharacterTemplate();
+    const duplicate=state.owned.find(c=>c.charId===base.id && c.star===star);
+    if(duplicate){
+      duplicate.awaken += 1;
+      entries.push(`<div class="row"><span class="badge ${starClass(star)}">${star}⭐</span><span class="name">${base.name}</span><div class="small">${base.role}</div><div class="small">중복 획득 · 각성 ${duplicate.awaken}</div></div>`);
+    }else{
+      state.owned.push({uid:uid(), charId:base.id, name:base.name, role:base.role, skill:base.skill, star, awaken:0, enhance:0, abilities:[], equippedGear:null});
+      entries.push(`<div class="row"><span class="badge ${starClass(star)}">${star}⭐</span><span class="name">${base.name}</span><div class="small">${base.role}</div><div class="small">신규 획득</div></div>`);
+    }
+  }
+  save(); renderAll(); renderResultCards(entries);
+}
+function pullAbilities(times){
+  const cost=times===10?540:60;
+  if(state.crystal<cost){ alert("크리스탈이 부족합니다."); return; }
+  state.crystal-=cost; state.abilityPullCount+=times;
+  const entries=[];
+  for(let i=0;i<times;i++){
+    const tier=weightedPick(abilityRates,"tier");
+    const ability={uid:uid(), tier, name:randomFrom(abilityPools[tier]), equippedTo:null};
+    state.abilityInventory.push(ability);
+    entries.push(`<div class="row"><span class="badge ${tierClass(tier)}">${tier}등급</span><span class="name">${ability.name}</span><div class="small">능력 인벤토리에 저장됨</div></div>`);
+  }
+  save(); renderAll(); renderResultCards(entries);
+}
+function pullGear(times){
+  const cost=times===10?720:80;
+  if(state.crystal<cost){ alert("크리스탈이 부족합니다."); return; }
+  state.crystal-=cost; state.gearPullCount+=times;
+  const entries=[];
+  for(let i=0;i<times;i++){
+    const tier=weightedPick(gearRates,"tier");
+    const template=randomFrom(gearPools[tier]);
+    const gear={uid:uid(), tier, name:template.name, atk:template.atk, bonus:template.bonus, exclusiveBonus:template.exclusiveBonus||"", ownerId:template.ownerId||null, enhance:0, equippedTo:null};
+    state.gearInventory.push(gear);
+    entries.push(`<div class="row"><span class="badge ${gearClass(tier)}">${tier}</span><span class="name">${gear.name}</span><div class="small">공격력 +${gear.atk} · ${gear.bonus}${gear.exclusiveBonus?` · ${gear.exclusiveBonus}`:""}${gear.ownerId?` · 전용 대상: ${ownerNameById(gear.ownerId)}`:""}</div></div>`);
+  }
+  save(); renderAll(); renderResultCards(entries);
+}
+
+function sortOwned(){ return [...state.owned].sort((a,b)=>{ if(b.star!==a.star) return b.star-a.star; if(b.enhance!==a.enhance) return b.enhance-a.enhance; if(b.awaken!==a.awaken) return b.awaken-a.awaken; return a.name.localeCompare(b.name,"ko"); }); }
+function renderCharacters(){
+  const box=document.getElementById("characterList");
+  const list=sortOwned();
+  if(!list.length){ box.innerHTML=`<div class="row small">보유 캐릭터가 없습니다.</div>`; return; }
+  box.innerHTML=list.map(c=>{
+    const inTeam=state.team.includes(c.uid);
+    return `<div class="row ${selectedCharId===c.uid?"highlight":""}" onclick="openCharPopup('${c.uid}')">
+      <span class="badge ${starClass(c.star)}">${c.star}⭐</span><span class="name">${c.name}</span>
+      <div class="small">${c.role}</div>
+      <div class="small">스킬: ${c.skill}</div>
+      <div class="small">전투력 ${calcCharacterPower(c)} · 강화 +${c.enhance||0} · 각성 ${c.awaken}</div>
+      <div class="small">장비: ${c.equippedGear ? `[${c.equippedGear.tier}] ${c.equippedGear.name} +${c.equippedGear.enhance||0}` : "없음"}</div>
+      <div class="toolbar">
+        <button class="primary smallBtn" onclick="event.stopPropagation(); addToTeam('${c.uid}')">${inTeam?"팀 배치됨":"팀 편성"}</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderAbilityInventoryPage(){
+  const box=document.getElementById("abilityInventoryList");
+  const items=state.abilityInventory.filter(a=>!a.equippedTo);
+  box.innerHTML = items.length ? items.map(a=>`<div class="row"><span class="badge ${tierClass(a.tier)}">${a.tier}등급</span><span class="name">${a.name}</span></div>`).join("") : `<div class="small">미장착 능력이 없습니다.</div>`;
+}
+function renderGearInventoryPage(){
+  const box=document.getElementById("gearInventoryList");
+  const items=state.gearInventory.filter(g=>!g.equippedTo);
+  box.innerHTML = items.length ? items.map(g=>`<div class="row"><span class="badge ${gearClass(g.tier)}">${g.tier}</span><span class="name">${g.name}</span><div class="small">공격력 +${g.atk} · 장비 강화 +${g.enhance||0} · ${g.bonus}${g.exclusiveBonus?` · ${g.exclusiveBonus}`:""}${g.ownerId?` · 전용 대상: ${ownerNameById(g.ownerId)}`:""}</div></div>`).join("") : `<div class="small">미장착 장비가 없습니다.</div>`;
+}
+
+function renderTopStats(){
+  document.getElementById("crystalText").textContent=state.crystal.toLocaleString();
+  document.getElementById("goldText").textContent=state.gold.toLocaleString();
+  document.getElementById("ownedCount").textContent=`${state.owned.length} / 40`;
+  document.getElementById("abilityCount").textContent=state.abilityInventory.filter(a=>!a.equippedTo).length.toLocaleString();
+  document.getElementById("gearCount").textContent=state.gearInventory.filter(g=>!g.equippedTo).length.toLocaleString();
+  document.getElementById("killCountText").textContent=state.totalKills.toLocaleString();
+  document.getElementById("charPullCount").textContent=state.charPullCount.toLocaleString();
+  document.getElementById("abilityPullCount").textContent=state.abilityPullCount.toLocaleString();
+  document.getElementById("gearPullCount").textContent=state.gearPullCount.toLocaleString();
+  document.getElementById("battleCrystalText").textContent=state.battleCrystal.toLocaleString();
+}
+
+function openCharPopup(uid){ selectedCharId=uid; renderSelectedPanel(); document.getElementById("charPopup").classList.add("active"); }
+function closeCharPopup(){ document.getElementById("charPopup").classList.remove("active"); }
+function getSelectedCharacter(){ return state.owned.find(c=>c.uid===selectedCharId) || null; }
+
+function renderSelectedPanel(){
+  const selected=getSelectedCharacter();
+  const info=document.getElementById("selectedInfo");
+  const equippedBox=document.getElementById("equippedBox");
+  const inventoryBox=document.getElementById("inventoryBox");
+  const gearEquippedBox=document.getElementById("gearEquippedBox");
+  const gearInventoryBox=document.getElementById("gearInventoryBox");
+  if(!selected){
+    info.innerHTML="선택된 캐릭터 없음"; equippedBox.innerHTML=""; inventoryBox.innerHTML=""; gearEquippedBox.innerHTML=""; gearInventoryBox.innerHTML=""; return;
+  }
+  const inTeam=state.team.includes(selected.uid);
+  const sameNameSameStar = state.owned.filter(c => c.uid !== selected.uid && c.charId === selected.charId && c.star === selected.star).length;
+  const sameStar = state.owned.filter(c => c.uid !== selected.uid && c.star === selected.star).length;
+  info.innerHTML=`
+    <span class="badge ${starClass(selected.star)}">${selected.star}⭐</span><strong>${selected.name}</strong> · ${selected.role}
+    <div class="small">스킬: ${selected.skill}</div>
+    <div class="small">전투력 ${calcCharacterPower(selected)} · 캐릭터 강화 +${selected.enhance||0} · 각성 ${selected.awaken}</div>
+    <div class="toolbar">
+      <button class="primary smallBtn" onclick="addToTeam('${selected.uid}')">${inTeam?"팀 배치됨":"팀 편성"}</button>
+      <button class="gold smallBtn" onclick="enhanceCharacter('${selected.uid}')">캐릭터 강화</button>
+      <button class="violet smallBtn" onclick="promoteCharacter('${selected.uid}')">승급</button>
+      <button class="ghost smallBtn" onclick="autoEquipBest('${selected.uid}')">추천 장착</button>
+    </div>
+    <div class="small">승급 재료: 동일 캐릭터 ${sameNameSameStar}개 · 같은 등급 ${sameStar}개</div>
+  `;
+  equippedBox.innerHTML = selected.abilities.length ? selected.abilities.map(a=>`<div class="row"><span class="badge ${tierClass(a.tier)}">${a.tier}등급</span><span class="name">${a.name}</span><div class="toolbar"><button class="ghost smallBtn" onclick="unequipAbility('${selected.uid}','${a.uid}')">해제</button></div></div>`).join("") : `<div class="small">장착 능력 없음</div>`;
+  const freeAbilities=state.abilityInventory.filter(a=>!a.equippedTo);
+  inventoryBox.innerHTML = freeAbilities.length ? freeAbilities.map(a=>`<div class="row"><span class="badge ${tierClass(a.tier)}">${a.tier}등급</span><span class="name">${a.name}</span><div class="toolbar"><button class="primary smallBtn" onclick="equipAbility('${a.uid}')">장착</button></div></div>`).join("") : `<div class="small">미장착 능력 없음</div>`;
+
+  gearEquippedBox.innerHTML = selected.equippedGear ? `<div class="row"><span class="badge ${gearClass(selected.equippedGear.tier)}">${selected.equippedGear.tier}</span><span class="name">${selected.equippedGear.name}</span><div class="small">공격력 +${selected.equippedGear.atk} · 장비 강화 +${selected.equippedGear.enhance||0} · ${selected.equippedGear.bonus}${selected.equippedGear.exclusiveBonus?` · ${selected.equippedGear.exclusiveBonus}`:""}${selected.equippedGear.ownerId?` · 전용 대상: ${ownerNameById(selected.equippedGear.ownerId)}`:""}</div><div class="toolbar"><button class="gold smallBtn" onclick="enhanceGear('${selected.uid}')">장비 강화</button><button class="ghost smallBtn" onclick="unequipGear('${selected.uid}')">해제</button></div></div>` : `<div class="small">장착 장비 없음</div>`;
+  const freeGear=state.gearInventory.filter(g=>!g.equippedTo);
+  gearInventoryBox.innerHTML = freeGear.length ? freeGear.map(g=>`<div class="row"><span class="badge ${gearClass(g.tier)}">${g.tier}</span><span class="name">${g.name}</span><div class="small">공격력 +${g.atk} · 장비 강화 +${g.enhance||0} · ${g.bonus}${g.exclusiveBonus?` · ${g.exclusiveBonus}`:""}${g.ownerId?` · 전용 대상: ${ownerNameById(g.ownerId)}`:""}</div><div class="toolbar"><button class="primary smallBtn" onclick="equipGear('${g.uid}')">착용</button></div></div>`).join("") : `<div class="small">미장착 장비 없음</div>`;
+}
+
+function equipAbility(abilityUid){
+  const selected=getSelectedCharacter(); if(!selected){ return; }
+  if(selected.abilities.length>=3){ alert("이 캐릭터는 능력 3개까지 장착할 수 있습니다."); return; }
+  const ability=state.abilityInventory.find(a=>a.uid===abilityUid && !a.equippedTo); if(!ability) return;
+  ability.equippedTo=selected.uid; selected.abilities.push({uid:ability.uid,tier:ability.tier,name:ability.name});
+  save(); renderAll(); renderSelectedPanel();
+}
+function unequipAbility(charUid, abilityUid){
+  const char=state.owned.find(c=>c.uid===charUid); const ability=state.abilityInventory.find(a=>a.uid===abilityUid); if(!char||!ability)return;
+  char.abilities=char.abilities.filter(a=>a.uid!==abilityUid); ability.equippedTo=null;
+  save(); renderAll(); renderSelectedPanel();
+}
+function equipGear(gearUid){
+  const selected=getSelectedCharacter(); if(!selected) return;
+  const gear=state.gearInventory.find(g=>g.uid===gearUid && !g.equippedTo); if(!gear) return;
+  if(gear.tier === "전용" && gear.ownerId && gear.ownerId !== selected.charId){
+    alert(`이 전용 장비는 ${ownerNameById(gear.ownerId)} 전용입니다.`);
+    return;
+  }
+  if(selected.equippedGear){ const prev=state.gearInventory.find(g=>g.uid===selected.equippedGear.uid); if(prev) prev.equippedTo=null; }
+  gear.equippedTo=selected.uid;
+  selected.equippedGear={uid:gear.uid,tier:gear.tier,name:gear.name,atk:gear.atk,bonus:gear.bonus,exclusiveBonus:gear.exclusiveBonus||"", ownerId:gear.ownerId||null, enhance:gear.enhance||0};
+  save(); renderAll(); renderSelectedPanel();
+}
+function unequipGear(charUid){
+  const char=state.owned.find(c=>c.uid===charUid); if(!char||!char.equippedGear) return;
+  const gear=state.gearInventory.find(g=>g.uid===char.equippedGear.uid); if(gear) gear.equippedTo=null;
+  char.equippedGear=null;
+  save(); renderAll(); renderSelectedPanel();
+}
+
+function enhanceGear(charUid){
+  const char=state.owned.find(c=>c.uid===charUid); if(!char||!char.equippedGear){ alert("장착한 장비가 없습니다."); return; }
+  const gear=state.gearInventory.find(g=>g.uid===char.equippedGear.uid); if(!gear) return;
+  if((gear.enhance||0) >= 10){ alert("장비는 10강까지 가능합니다."); return; }
+  const cost = 180 + (gear.enhance||0)*120;
+  if(state.gold < cost){ alert(`골드가 부족합니다. 필요 골드: ${cost}`); return; }
+  state.gold -= cost;
+  gear.enhance = (gear.enhance||0) + 1;
+  char.equippedGear.enhance = gear.enhance;
+  addBattleLog(`${char.name}의 ${gear.name} 강화 성공 · +${gear.enhance}`);
+  save(); renderAll(); renderSelectedPanel();
+}
+
+function autoEquipBest(charUid){
+  const char=state.owned.find(c=>c.uid===charUid); if(!char) return;
+  const candidates = state.gearInventory.filter(g => !g.equippedTo && (g.tier !== "전용" || !g.ownerId || g.ownerId === char.charId));
+  if(!candidates.length){ alert("장착 가능한 장비가 없습니다."); return; }
+  candidates.sort((a,b) => ((b.atk||0)+(b.enhance||0)*3) - ((a.atk||0)+(a.enhance||0)*3));
+  equipGear(candidates[0].uid);
+}
+
+function enhanceCharacter(uid){
+  const char=state.owned.find(c=>c.uid===uid); if(!char) return;
+  if((char.enhance||0)>=10){ alert("이미 10강입니다."); return; }
+  const cost=150 + (char.enhance||0)*100;
+  if(state.gold<cost){ alert(`골드가 부족합니다. 필요 골드: ${cost}`); return; }
+  state.gold-=cost; char.enhance=(char.enhance||0)+1;
+  addBattleLog(`${char.name} 강화 성공 · +${char.enhance}`);
+  save(); renderAll(); renderSelectedPanel();
+}
+function promoteCharacter(uid){
+  const char=state.owned.find(c=>c.uid===uid); if(!char) return;
+  if(char.star>=7){ alert("이미 최고 등급입니다."); return; }
+  const sameName=state.owned.find(c=>c.uid!==uid && c.charId===char.charId && c.star===char.star);
+  const sameStar=state.owned.find(c=>c.uid!==uid && c.star===char.star && c.uid!==(sameName?sameName.uid:""));
+  if(!sameName || !sameStar){
+    alert("승급 재료 부족\n필요: 동일 등급의 동일 캐릭터 1개 + 동일 등급 캐릭터 1개");
+    return;
+  }
+  state.owned=state.owned.filter(c=>c.uid!==sameName.uid && c.uid!==sameStar.uid);
+  state.team=state.team.map(t=>(t===sameName.uid||t===sameStar.uid)?null:t);
+  state.abilityInventory.forEach(a=>{ if(a.equippedTo===sameName.uid || a.equippedTo===sameStar.uid) a.equippedTo=null; });
+  state.gearInventory.forEach(g=>{ if(g.equippedTo===sameName.uid || g.equippedTo===sameStar.uid) g.equippedTo=null; });
+  char.star += 1; char.enhance = 0;
+  addBattleLog(`${char.name} 승급 성공 · ${char.star}⭐`);
+  save(); renderAll(); renderSelectedPanel();
+  renderResultCards([`<div class="row"><span class="badge ${starClass(char.star)}">${char.star}⭐</span><span class="name">${char.name}</span><div class="small">승급 성공 · 강화 초기화</div></div>`]);
+}
+
+function addToTeam(uid){ if(state.team.includes(uid)){ renderAll(); renderSelectedPanel(); return; } const emptyIndex=state.team.findIndex(v=>!v); if(emptyIndex===-1){ alert("팀은 3인까지만 편성할 수 있습니다."); return; } state.team[emptyIndex]=uid; save(); renderAll(); renderSelectedPanel(); }
+function removeFromTeam(index){ state.team[index]=null; save(); renderAll(); }
+function clearTeam(){ state.team=[null,null,null]; save(); renderAll(); }
+
+function renderTeam(){
+  const box=document.getElementById("teamSlots");
+  box.innerHTML=state.team.map((uid,idx)=>{
+    if(!uid) return `<div class="slot empty">빈 슬롯 ${idx+1}</div>`;
+    const char=state.owned.find(c=>c.uid===uid);
+    if(!char) return `<div class="slot empty">빈 슬롯 ${idx+1}</div>`;
+    return `<div class="slot">
+      <span class="badge ${starClass(char.star)}">${char.star}⭐</span>
+      <div class="name">${char.name}</div>
+      <div class="small">${char.skill}</div>
+      <div class="small">전투력 ${calcCharacterPower(char)}</div>
+      <div class="small">강화 +${char.enhance||0} · 장비 ${char.equippedGear ? `+${char.equippedGear.enhance||0}` : "+0"}</div>
+      <div class="toolbar"><button class="ghost smallBtn" onclick="removeFromTeam(${idx})">제외</button></div>
+    </div>`;
+  }).join("");
+  const visual=document.getElementById("teamVisual");
+  visual.innerHTML=getTeamCharacters().map(c=>`<div class="hunter"><div class="head"></div><div class="body"></div><div class="weapon" style="${c.equippedGear&&c.equippedGear.tier==='전용'?'background:#fda4af;':c.equippedGear&&c.equippedGear.tier==='유물'?'background:#fcd34d;':''}"></div></div>`).join("");
+}
+function getTeamCharacters(){ return state.team.map(uid=>state.owned.find(c=>c.uid===uid)).filter(Boolean); }
+function teamTotalPower(){ return getTeamCharacters().reduce((sum,c)=>sum+calcCharacterPower(c),0); }
+
+function zoneName(stage){ return zones[Math.min(zones.length-1, Math.floor((stage-1)/4))]; }
+function monsterHpFor(stage,wave){ return Math.round(80 + stage*48 + wave*22 + (stage*wave*7)); }
+function monsterNameFor(stage,wave){ if(wave%5===0) return `게이트 보스 ${["망령 군주","파멸 기사","침식 골렘","심연 포식자","붕괴 수호자"][stage%5]}`; return monsters[(stage+wave)%monsters.length]; }
+function ensureMonster(){ if(state.battle.monsterHp<=0){ state.battle.zone=zoneName(state.battle.stage); state.battle.monsterName=monsterNameFor(state.battle.stage,state.battle.wave); state.battle.monsterHpMax=monsterHpFor(state.battle.stage,state.battle.wave); state.battle.monsterHp=state.battle.monsterHpMax; } }
+function addBattleLog(text){ state.battle.log.unshift(text); state.battle.log=state.battle.log.slice(0,20); }
+
+function triggerSkillFx(name){
+  const fxText=document.getElementById("fxText"), slash=document.getElementById("fxSlash"), circle=document.getElementById("fxCircle"), burst=document.getElementById("fxBurst"), shield=document.getElementById("fxShield"), ray=document.getElementById("fxRay"), heal=document.getElementById("fxHeal");
+  [fxText,slash,circle,burst,shield,ray,heal].forEach(el=>el.classList.remove("show"));
+  fxText.textContent=name;
+  fxText.style.color = name.includes("빙") || name.includes("뢰") ? "#93c5fd" : name.includes("치유") || name.includes("축복") || name.includes("결계") ? "#86efac" : name.includes("폭발") || name.includes("처형") || name.includes("난무") ? "#f9a8d4" : "#f8fafc";
+  fxText.classList.add("show");
+  if(name.includes("참") || name.includes("일섬") || name.includes("난무") || name.includes("수확")) slash.classList.add("show");
+  else if(name.includes("폭풍") || name.includes("강림") || name.includes("결계")) circle.classList.add("show");
+  else if(name.includes("폭발") || name.includes("처형") || name.includes("연권")) burst.classList.add("show");
+  else if(name.includes("치유") || name.includes("축복")) heal.classList.add("show");
+  else if(name.includes("방벽")) shield.classList.add("show");
+  else ray.classList.add("show");
+  setTimeout(()=>{ [fxText,slash,circle,burst,shield,ray,heal].forEach(el=>el.classList.remove("show")); }, 560);
+}
+
+function startBattle(){
+  if(getTeamCharacters().length===0){ alert("먼저 팀을 편성하세요."); return; }
+  if(battleTimer) return;
+  state.battle.running=true; ensureMonster(); addBattleLog("게이트 공략을 시작했습니다.");
+  battleTimer=setInterval(tickBattle, 600); save(); renderAll();
+}
+function stopBattle(){ state.battle.running=false; if(battleTimer){ clearInterval(battleTimer); battleTimer=null; } save(); renderAll(); }
+
+function tickBattle(){
+  const team=getTeamCharacters();
+  if(team.length===0){ stopBattle(); addBattleLog("팀이 비어 자동전투가 중지되었습니다."); renderAll(); return; }
+  ensureMonster();
+  tickCount += 1;
+  const power=teamTotalPower();
+  const variance=0.9 + Math.random()*0.28;
+  const crit=Math.random()<0.18?1.5:1;
+  let damage=Math.max(1, Math.round(power*variance*0.42*crit));
+  const isBossWave = state.battle.wave % 5 === 0;
+  if(isBossWave && tickCount % 3 === 0){
+    damage = Math.round(damage * 0.78);
+    addBattleLog(`${state.battle.monsterName}의 압박 패턴 · 피해 감소`);
+  }
+  if(tickCount % 4 === 0){
+    const caster=randomFrom(team);
+    let skillMult=1.35 + (caster.star*0.05) + ((caster.enhance||0)*0.03);
+    damage = Math.round(damage * skillMult);
+    state.battle.lastSkill=`${caster.name} · ${caster.skill}`;
+    triggerSkillFx(caster.skill);
+    addBattleLog(`${caster.name} 스킬 발동 · ${caster.skill}`);
+  }
+  state.battle.monsterHp=Math.max(0, state.battle.monsterHp - damage);
+  state.battle.recentDps=Math.round(damage / 0.6);
+  state.bestPower = Math.max(state.bestPower||0, teamTotalPower());
+  if(state.battle.monsterHp<=0){
+    const bossKill = state.battle.wave % 5 === 0;
+    const rewardGold=Math.round(20 + state.battle.stage*8 + state.battle.wave*4 + (bossKill ? 45 + state.battle.stage*5 : 0));
+    const rewardCrystal=bossKill ? Math.round(4 + state.battle.stage*2) : (Math.random()<0.25 ? 2 : 0);
+    state.gold += rewardGold; state.battleCrystal += rewardCrystal; state.crystal += rewardCrystal; state.totalKills += 1;
+    addBattleLog(`${state.battle.monsterName} 처치 · 골드 +${rewardGold}${rewardCrystal?` · 크리스탈 +${rewardCrystal}`:""}`);
+    state.battle.wave += 1;
+    if(state.battle.wave > 10){ state.battle.wave = 1; state.battle.stage += 1; state.bestStage = Math.max(state.bestStage||1, state.battle.stage); addBattleLog(`스테이지 ${state.battle.stage} 진입 · 지역 ${zoneName(state.battle.stage)}`); }
+    state.battle.monsterHp = 0; ensureMonster();
+  }
+  save(); renderAll();
+}
+
+function calculateOfflineReward(){
+  const now=Date.now();
+  const last = Math.max(state.lastClaimedOfflineAt||0, state.lastSavedAt||0);
+  const diffMs = Math.max(0, now - last);
+  const cappedMs = Math.min(diffMs, 1000*60*60*8);
+  const minutes = Math.floor(cappedMs / 60000);
+  if(minutes <= 0) return null;
+  const teamPower = Math.max(1, teamTotalPower());
+  const gold = Math.floor(minutes * (8 + teamPower * 0.08));
+  const crystal = Math.floor(minutes / 18);
+  return {minutes, gold, crystal};
+}
+function claimOfflineReward(){
+  const reward=calculateOfflineReward();
+  if(!reward){ alert("받을 오프라인 보상이 없습니다."); return; }
+  state.gold += reward.gold;
+  state.crystal += reward.crystal;
+  state.lastClaimedOfflineAt = Date.now();
+  addBattleLog(`오프라인 보상 수령 · ${reward.minutes}분 · 골드 +${reward.gold} · 크리스탈 +${reward.crystal}`);
+  save(); renderAll();
+  renderResultCards([`<div class="row"><span class="name">오프라인 보상</span><div class="small">${reward.minutes}분 누적</div><div class="small">골드 +${reward.gold} · 크리스탈 +${reward.crystal}</div></div>`]);
+}
+
+function claimDailyReward(){
+  const today = new Date().toISOString().slice(0,10);
+  if(state.lastDailyRewardDay === today){
+    alert("오늘은 이미 일일 보급을 받았습니다.");
+    return;
+  }
+  const crystal = 300;
+  const gold = 500;
+  state.crystal += crystal;
+  state.gold += gold;
+  state.lastDailyRewardDay = today;
+  addBattleLog(`일일 보급 수령 · 골드 +${gold} · 크리스탈 +${crystal}`);
+  save(); renderAll();
+  renderResultCards([`<div class="row"><span class="name">일일 보급</span><div class="small">골드 +${gold} · 크리스탈 +${crystal}</div></div>`]);
+}
+
+
+function openSavePopup(){ renderSaveSlots(); document.getElementById("savePopup").classList.add("active"); }
+function closeSavePopup(){ document.getElementById("savePopup").classList.remove("active"); }
+function saveToSlot(slot){
+  save();
+  localStorage.setItem(saveSlotsKey(slot), JSON.stringify(state));
+  renderSaveSlots();
+  renderResultCards([`<div class="row"><span class="name">슬롯 ${slot}</span><div class="small">저장 완료</div></div>`]);
+}
+function loadFromSlot(slot){
+  const raw = localStorage.getItem(saveSlotsKey(slot));
+  if(!raw){ alert("해당 슬롯에 저장 데이터가 없습니다."); return; }
+  try{
+    stopBattle();
+    state = JSON.parse(raw);
+    ensureMeta();
+    renderAll();
+    closeSavePopup();
+    renderResultCards([`<div class="row"><span class="name">슬롯 ${slot}</span><div class="small">불러오기 완료</div></div>`]);
+  }catch{
+    alert("슬롯 데이터를 불러오지 못했습니다.");
+  }
+}
+function renderSaveSlots(){
+  const box = document.getElementById("saveSlotList");
+  box.innerHTML = [1,2,3].map(slot => {
+    const raw = localStorage.getItem(saveSlotsKey(slot));
+    const body = raw ? (() => { try{ return slotMeta(JSON.parse(raw)); } catch { return "손상된 데이터"; } })() : "비어 있음";
+    return `<div class="row"><div><strong>슬롯 ${slot}</strong></div><div class="small" style="margin-top:6px;">${body}</div><div class="toolbar"><button class="primary smallBtn" onclick="saveToSlot(${slot})">저장</button><button class="ghost smallBtn" onclick="loadFromSlot(${slot})">불러오기</button></div></div>`;
+  }).join("");
+}
+function setSkin(name){
+  state.activeSkin = name;
+  applySkin();
+  save();
+  renderAll();
+}
+function applySkin(){
+  const root = document.documentElement;
+  const skins = {
+    default: {blue:"#38bdf8", violet:"#8b5cf6", gold:"#f59e0b", green:"#22c55e", red:"#ef4444", pink:"#f472b6"},
+    azure: {blue:"#22d3ee", violet:"#6366f1", gold:"#fbbf24", green:"#10b981", red:"#fb7185", pink:"#67e8f9"},
+    violet: {blue:"#818cf8", violet:"#a855f7", gold:"#f59e0b", green:"#34d399", red:"#f43f5e", pink:"#c084fc"},
+    gold: {blue:"#60a5fa", violet:"#a78bfa", gold:"#fbbf24", green:"#84cc16", red:"#fb7185", pink:"#f9a8d4"}
+  };
+  const s = skins[state.activeSkin] || skins.default;
+  for(const [k,v] of Object.entries(s)) root.style.setProperty(`--${k}`, v);
+  const labelMap = {default:"기본", azure:"아쥬르", violet:"바이올렛", gold:"골드"};
+  const el = document.getElementById("activeSkinText");
+  if(el) el.textContent = labelMap[state.activeSkin] || "기본";
+}
+function updateAchievements(){
+  const defs = [
+    {id:"first_hunter", name:"첫 헌터", desc:"캐릭터 1명 획득", ok: state.owned.length >= 1},
+    {id:"full_team", name:"완성된 편성", desc:"팀 3인 편성", ok: getTeamCharacters().length >= 3},
+    {id:"kill_100", name:"백전노장", desc:"누적 처치 100", ok: state.totalKills >= 100},
+    {id:"stage_10", name:"상위 게이트", desc:"스테이지 10 도달", ok: state.bestStage >= 10},
+    {id:"power_1000", name:"전투력 각성", desc:"팀 전투력 1000 돌파", ok: state.bestPower >= 1000},
+    {id:"gear_relic", name:"유물 수집가", desc:"유물 이상 장비 획득", ok: state.gearInventory.some(g => g.tier === "유물" || g.tier === "전용")},
+  ];
+  defs.forEach(d => {
+    if(d.ok && !state.achievements[d.id]) state.achievements[d.id] = true;
+  });
+  const box = document.getElementById("achievementList");
+  if(box){
+    box.innerHTML = defs.map(d => `<div class="row"><div><strong>${state.achievements[d.id] ? "✅" : "⬜️"} ${d.name}</strong></div><div class="small" style="margin-top:6px;">${d.desc}</div></div>`).join("");
+  }
+}
+
+function renderBattle(){
+  ensureMonster();
+  document.getElementById("zoneText").textContent=state.battle.zone;
+  document.getElementById("stageText").textContent=state.battle.stage;
+  document.getElementById("waveText").textContent=state.battle.wave;
+  document.getElementById("monsterNameText").textContent=state.battle.monsterName;
+  document.getElementById("monsterHpText").textContent=`${state.battle.monsterHp} / ${state.battle.monsterHpMax}`;
+  document.getElementById("monsterHpFill").style.width=`${(state.battle.monsterHp/state.battle.monsterHpMax)*100}%`;
+  document.getElementById("teamPowerText").textContent=teamTotalPower().toLocaleString();
+  document.getElementById("dpsText").textContent=state.battle.recentDps.toLocaleString();
+  document.getElementById("battleLog").innerHTML=state.battle.log.map(v=>`<div>• ${v}</div>`).join("");
+  document.getElementById("lastSkillText").textContent=state.battle.lastSkill||"없음";
+}
+
+function renderAll(){
+  applySkin();
+  renderTopStats();
+  renderCharacters();
+  renderAbilityInventoryPage();
+  renderGearInventoryPage();
+  renderTeam();
+  renderBattle();
+  updateAchievements();
+  if(document.getElementById("charPopup").classList.contains("active")) renderSelectedPanel();
+}
+
+function switchTab(tab){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("page"+tab).classList.add("active");
+  document.querySelector(`.tabbar button[data-tab="${tab}"]`).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.querySelectorAll(".tabbar button").forEach(btn=>btn.addEventListener("click",()=>switchTab(btn.dataset.tab)));
+document.getElementById("charSingleBtn").addEventListener("click",()=>pullCharacters(1));
+document.getElementById("charTenBtn").addEventListener("click",()=>pullCharacters(10));
+document.getElementById("abilitySingleBtn").addEventListener("click",()=>pullAbilities(1));
+document.getElementById("abilityTenBtn").addEventListener("click",()=>pullAbilities(10));
+document.getElementById("gearSingleBtn").addEventListener("click",()=>pullGear(1));
+document.getElementById("gearTenBtn").addEventListener("click",()=>pullGear(10));
+document.getElementById("giftBtn").addEventListener("click",()=>{ state.crystal += 3000; save(); renderAll(); });
+document.getElementById("resetBtn").addEventListener("click",resetGame);
+document.getElementById("startBattleBtn").addEventListener("click",startBattle);
+document.getElementById("stopBattleBtn").addEventListener("click",stopBattle);
+document.getElementById("clearTeamBtn").addEventListener("click",clearTeam);
+document.getElementById("claimOfflineBtn").addEventListener("click",claimOfflineReward);
+document.getElementById("dailyRewardBtn").addEventListener("click",claimDailyReward);
+document.getElementById("saveSlotBtn").addEventListener("click",openSavePopup);
+
+load();
+renderAll();
+</script>
+</body>
+</html>
