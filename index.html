@@ -3,91 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>헌터 게이트 RPG</title>
-
+<title>헌터 게이트</title>
 <style>
-body {margin:0; font-family:sans-serif; background:#0b1220; color:white; text-align:center;}
-.box {margin:15px; padding:15px; border:1px solid #333; border-radius:10px;}
-button {padding:10px; margin:5px; border:none; border-radius:8px; background:#3b82f6; color:white;}
+body{font-family:sans-serif;text-align:center;background:#111;color:#fff}
+button{padding:10px;margin:5px}
 </style>
 </head>
-
 <body>
 
-<h2>헌터 게이트 RPG</h2>
+<h2 id="title">헌터 게이트 RPG</h2>
 
-<div class="box">
-  크리스탈: <span id="crystal">1000</span><br>
-  골드: <span id="gold">0</span>
-</div>
+<p>크리스탈: <span id="c">1000</span></p>
+<p>골드: <span id="g">0</span></p>
 
-<div class="box">
-  <button onclick="summon()">캐릭터 뽑기 (100)</button>
-  <button onclick="battle()">전투</button>
-</div>
-
-<div class="box">
-  <div id="log">게임 시작</div>
-</div>
+<button onclick="summon()">캐릭터 뽑기(100)</button>
+<button onclick="battle()">전투</button>
 
 <script>
-let crystal = 1000;
-let gold = 0;
-
-// ⭐ 등급 확률
-function getRank(){
-  let r = Math.random()*100;
-  if(r<40) return 1;
-  if(r<65) return 2;
-  if(r<80) return 3;
-  if(r<90) return 4;
-  if(r<96) return 5;
-  if(r<99) return 6;
-  return 7;
-}
-
-// 🎮 100 캐릭터 생성
-let characters = [];
-let names = ["흑월","백은","빙하","성광","폭염","심연","강철","폭풍","야성","명계"];
-let jobs = ["검사","창기사","마법사","궁수","힐러","암살자","수호자","권사","소환사","낫술사"];
-
-for(let i=0;i<100;i++){
-  let name = names[i%10] + " " + jobs[Math.floor(i/10)];
-  characters.push(name);
-}
+let c=1000,g=0,tap=0,timer;
 
 function summon(){
-  if(crystal < 100){
-    log("크리스탈 부족");
-    return;
-  }
-
-  crystal -= 100;
-
-  let rank = getRank();
-  let char = characters[Math.floor(Math.random()*characters.length)];
-
-  log("⭐"+rank+" 획득! → " + char);
-  update();
+ if(c>=100){c-=100;update();alert("캐릭터 획득!")}
+ else alert("크리스탈 부족")
 }
 
 function battle(){
-  let gain = Math.floor(Math.random()*100)+20;
-  gold += gain;
-  log("전투 승리! 골드 +" + gain);
-  update();
+ let r=Math.random();
+ if(r<0.5){g+=100;alert("승리 +100골드")}
+ else alert("패배")
+ update();
 }
 
 function update(){
-  document.getElementById("crystal").innerText = crystal;
-  document.getElementById("gold").innerText = gold;
+ document.getElementById("c").innerText=c;
+ document.getElementById("g").innerText=g;
 }
 
-function log(txt){
-  document.getElementById("log").innerText = txt;
+// 숨겨진 치트 (타이틀 5번 클릭)
+document.getElementById("title").onclick=()=>{
+ tap++;
+ clearTimeout(timer);
+ timer=setTimeout(()=>tap=0,1200);
+ if(tap>=5){
+   c+=9999;
+   g+=9999;
+   update();
+   alert("치트 활성화🔥");
+   tap=0;
+ }
 }
-
-update();
 </script>
 
 </body>
